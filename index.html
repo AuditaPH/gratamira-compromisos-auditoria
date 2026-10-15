@@ -247,6 +247,10 @@ function impactoBadgeClass(impacto){
 function isPendiente(estado){ return estado === 'En Proceso' || estado === 'No Iniciado'; }
 
 const seqById = {};
+const AVANCES = {
+  1: 'Presenta avances significativos a un 85%. Ver detalles.',
+  12: 'Presenta avances significativos a un 65%. Ver detalles.'
+};
 
 function renderFindings(){
   const container = document.getElementById('findings-container');
@@ -260,8 +264,13 @@ function renderFindings(){
       seq++;
       seqById[h.id] = seq;
       const pendiente = isPendiente(h.estado);
-      const diasBadge = pendiente ? '<span class="status-badge status-dias">'+daysSince(h.fecha_identificacion)+' días sin resolución</span>' : '';
-      const tip = h.fecha_compromiso_texto ? '<span class="info-tip">i<span class="tip-text">Fecha de compromiso: '+escapeHtml(h.fecha_compromiso_texto)+'</span></span>' : '';
+      const avance = AVANCES[h.id];
+      const diasTxt = avance ? ' días desde su identificación' : ' días sin resolución';
+      const diasBadge = pendiente ? '<span class="status-badge status-dias">'+daysSince(h.fecha_identificacion)+diasTxt+'</span>' : '';
+      const tipParts = [];
+      if (h.fecha_compromiso_texto) tipParts.push('Fecha de compromiso: '+escapeHtml(h.fecha_compromiso_texto));
+      if (avance) tipParts.push(escapeHtml(avance));
+      const tip = tipParts.length ? '<span class="info-tip">i<span class="tip-text">'+tipParts.join('<br>')+'</span></span>' : '';
       html += '<div class="finding-row" data-cat="'+cat+'" data-id="'+h.id+'" data-search="'+escapeHtml((h.titulo+' '+h.estado+' '+h.descripcion).toLowerCase())+'" onclick="showDetails('+h.id+')">'+
         '<div class="finding-num">'+seq+'</div>'+
         '<div class="finding-main"><div class="finding-title">'+escapeHtml(h.titulo)+'</div>'+
@@ -288,7 +297,7 @@ function showDetails(id){
     '<div class="info-item-modal"><label>Categoría</label><span class="val">'+escapeHtml(h.categoria)+'</span></div>'+
     '<div class="info-item-modal"><label>Fecha de Identificación</label><span class="val">'+escapeHtml(h.fecha_identificacion_texto || formatDate(h.fecha_identificacion))+'</span></div>';
   if (pendiente){
-    infoHtml += '<div class="info-item-modal"><label>Días Sin Resolución</label><span class="val">'+daysSince(h.fecha_identificacion)+' días</span></div>';
+    infoHtml += '<div class="info-item-modal"><label>'+(AVANCES[h.id] ? 'Días Desde su Identificación' : 'Días Sin Resolución')+'</label><span class="val">'+daysSince(h.fecha_identificacion)+' días</span></div>';
   }
   if (h.fecha_compromiso_texto){
     infoHtml += '<div class="info-item-modal"><label>Fecha de Compromiso</label><span class="val">'+escapeHtml(h.fecha_compromiso_texto)+'</span></div>';
